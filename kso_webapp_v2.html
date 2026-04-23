@@ -1,0 +1,416 @@
+
+<h2 class="sr-only">Веб-додаток управління касовим парком — 68 маркетів, таблиця, дашборд, журнал змін</h2>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;font-family:var(--font-sans)}
+:root{--blue:#378ADD;--teal:#1D9E75;--amber:#BA7517;--red:#D85A30;--blue-bg:#E6F1FB;--teal-bg:#E1F5EE;--amber-bg:#FAEEDA;--red-bg:#FAECE7;--blue-txt:#0C447C;--teal-txt:#0F6E56;--amber-txt:#633806;--red-txt:#993C1D}
+
+.app-shell{display:flex;flex-direction:column;min-height:580px;border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);overflow:hidden;background:var(--color-background-tertiary)}
+
+.topnav{display:flex;align-items:center;gap:0;background:var(--color-background-primary);border-bottom:0.5px solid var(--color-border-tertiary);height:52px;padding:0 20px}
+.logo{font-size:14px;font-weight:500;color:var(--color-text-primary);margin-right:28px;white-space:nowrap}
+.logo span{color:var(--teal);font-weight:500}
+.nav-tabs{display:flex;gap:0;height:100%}
+.nav-tab{padding:0 16px;font-size:13px;color:var(--color-text-secondary);border:none;background:transparent;cursor:pointer;height:100%;border-bottom:2px solid transparent;white-space:nowrap}
+.nav-tab:hover{color:var(--color-text-primary)}
+.nav-tab.on{color:var(--color-text-primary);border-bottom-color:var(--teal);font-weight:500}
+.nav-right{margin-left:auto;display:flex;align-items:center;gap:8px}
+.add-btn{padding:6px 14px;font-size:12px;font-weight:500;border-radius:var(--border-radius-md);border:none;background:var(--teal);color:#fff;cursor:pointer}
+.add-btn:hover{background:#0F6E56}
+
+.page{display:none;flex:1;overflow:auto}
+.page.on{display:block}
+
+.table-page{padding:16px 20px}
+
+.toolbar{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;align-items:center}
+.toolbar input{height:34px;font-size:13px;padding:0 12px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--color-background-primary);color:var(--color-text-primary);min-width:180px;flex:1;max-width:260px}
+.toolbar select{height:34px;font-size:13px;padding:0 10px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--color-background-primary);color:var(--color-text-primary)}
+.count-tag{font-size:12px;color:var(--color-text-secondary);margin-left:auto;white-space:nowrap}
+
+.tbl-wrap{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);overflow:hidden}
+table{width:100%;border-collapse:collapse;font-size:13px;table-layout:fixed}
+colgroup col:nth-child(1){width:80px}
+colgroup col:nth-child(2){width:60px}
+colgroup col:nth-child(3){width:60px}
+colgroup col:nth-child(4){width:60px}
+colgroup col:nth-child(5){width:65px}
+colgroup col:nth-child(6){width:90px}
+colgroup col:nth-child(7){width:70px}
+colgroup col:nth-child(8){width:54px}
+thead tr{background:var(--color-background-secondary)}
+th{padding:9px 12px;text-align:left;font-weight:500;color:var(--color-text-secondary);font-size:11px;border-bottom:0.5px solid var(--color-border-secondary);white-space:nowrap;cursor:pointer;user-select:none}
+th:hover{color:var(--color-text-primary)}
+th .sort-icon{margin-left:3px;opacity:.4}
+th.sorted .sort-icon{opacity:1}
+td{padding:9px 12px;border-bottom:0.5px solid var(--color-border-tertiary);color:var(--color-text-primary);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--color-background-secondary)}
+.pill{display:inline-flex;align-items:center;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:500}
+.p-blue{background:var(--blue-bg);color:var(--blue-txt)}
+.p-teal{background:var(--teal-bg);color:var(--teal-txt)}
+.p-amber{background:var(--amber-bg);color:var(--amber-txt)}
+.p-red{background:var(--red-bg);color:var(--red-txt)}
+.eb{padding:3px 10px;font-size:11px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:transparent;color:var(--color-text-secondary);cursor:pointer}
+.eb:hover{background:var(--color-background-secondary)}
+
+.dash-page{padding:16px 20px}
+.kpi-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;margin-bottom:18px}
+.kpi{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:14px 16px}
+.kpi-label{font-size:11px;color:var(--color-text-secondary);margin-bottom:4px}
+.kpi-val{font-size:26px;font-weight:500;line-height:1.1}
+.kpi-sub{font-size:11px;color:var(--color-text-secondary);margin-top:3px}
+.kpi-bar-wrap{height:4px;background:var(--color-background-secondary);border-radius:2px;margin-top:8px;overflow:hidden}
+.kpi-bar{height:100%;border-radius:2px;transition:width .5s}
+
+.charts-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.chart-card{background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);padding:14px 16px}
+.chart-card.wide{grid-column:1/-1}
+.chart-card h4{font-size:13px;font-weight:500;margin-bottom:10px;color:var(--color-text-primary)}
+.leg{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:8px}
+.leg span{display:flex;align-items:center;gap:4px;font-size:11px;color:var(--color-text-secondary)}
+.leg i{width:9px;height:9px;border-radius:2px;flex-shrink:0}
+
+.log-page{padding:16px 20px}
+.log-page h3{font-size:13px;font-weight:500;color:var(--color-text-secondary);margin-bottom:12px}
+.log-item{display:flex;gap:10px;padding:10px 14px;background:var(--color-background-primary);border-bottom:0.5px solid var(--color-border-tertiary);font-size:12px;align-items:flex-start}
+.log-item:first-child{border-radius:var(--border-radius-lg) var(--border-radius-lg) 0 0}
+.log-item:last-child{border-bottom:none;border-radius:0 0 var(--border-radius-lg) var(--border-radius-lg)}
+.log-wrap{border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg);overflow:hidden}
+.log-time{color:var(--color-text-secondary);white-space:nowrap;min-width:44px}
+.log-dot{width:7px;height:7px;border-radius:50%;background:var(--teal);margin-top:3px;flex-shrink:0}
+.log-empty{padding:24px;text-align:center;color:var(--color-text-secondary);font-size:13px;background:var(--color-background-primary);border:0.5px solid var(--color-border-tertiary);border-radius:var(--border-radius-lg)}
+
+.modal-wrap{min-height:400px;background:rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center}
+.modal{background:var(--color-background-primary);border-radius:var(--border-radius-lg);border:0.5px solid var(--color-border-secondary);padding:22px;width:320px}
+.modal h3{font-size:15px;font-weight:500;margin-bottom:16px}
+.field{margin-bottom:12px}
+.field label{display:block;font-size:11px;color:var(--color-text-secondary);margin-bottom:4px}
+.field input,.field select{width:100%;height:34px;font-size:13px;padding:0 10px;border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);background:var(--color-background-secondary);color:var(--color-text-primary)}
+.mbtns{display:flex;gap:8px;margin-top:16px;justify-content:flex-end}
+.btn-s{padding:7px 16px;font-size:13px;border-radius:var(--border-radius-md);border:none;background:var(--teal);color:#fff;cursor:pointer}
+.btn-c{padding:7px 16px;font-size:13px;border-radius:var(--border-radius-md);border:0.5px solid var(--color-border-secondary);background:transparent;color:var(--color-text-secondary);cursor:pointer}
+</style>
+
+<div class="app-shell">
+ <nav class="topnav">
+  <div class="logo">Каса<span>Парк</span></div>
+  <div class="nav-tabs">
+   <button class="nav-tab on" onclick="goPage('table',this)">Маркети</button>
+   <button class="nav-tab" onclick="goPage('dash',this)">Дашборд</button>
+   <button class="nav-tab" onclick="goPage('log',this)">Журнал змін</button>
+  </div>
+  <div class="nav-right">
+   <button class="add-btn" onclick="openAdd()">+ Маркет</button>
+  </div>
+ </nav>
+
+ <div id="page-table" class="page on">
+  <div class="table-page">
+   <div class="toolbar">
+    <input id="sq" placeholder="Пошук за номером маркету..." oninput="filt()"/>
+    <select id="sf" onchange="filt()">
+     <option value="">Всі маркети</option>
+     <option value="kso">Є КСО</option>
+     <option value="1c">Є 1С каси</option>
+     <option value="rmk_only">Тільки РМК</option>
+     <option value="queue">У черзі</option>
+    </select>
+    <select id="ss" onchange="filt()">
+     <option value="">Без сортування</option>
+     <option value="id">За номером</option>
+     <option value="total_d">Всього (більше)</option>
+     <option value="kso_d">КСО (більше)</option>
+     <option value="c1_d">1С (більше)</option>
+    </select>
+    <span class="count-tag" id="row-count"></span>
+   </div>
+   <div class="tbl-wrap">
+    <table>
+     <colgroup><col/><col/><col/><col/><col/><col/><col/><col/></colgroup>
+     <thead><tr>
+      <th>Маркет</th>
+      <th>1С</th>
+      <th>КСО</th>
+      <th>РМК</th>
+      <th>Всього</th>
+      <th>Тип</th>
+      <th>Черга</th>
+      <th></th>
+     </tr></thead>
+     <tbody id="tbl-body"></tbody>
+    </table>
+   </div>
+  </div>
+ </div>
+
+ <div id="page-dash" class="page">
+  <div class="dash-page">
+   <div class="kpi-row" id="kpi-row"></div>
+   <div class="charts-grid">
+    <div class="chart-card">
+     <h4>Розподіл типів кас</h4>
+     <div class="leg">
+      <span><i style="background:#378ADD"></i>1С — <b id="leg-1c"></b></span>
+      <span><i style="background:#1D9E75"></i>КСО — <b id="leg-kso"></b></span>
+      <span><i style="background:#D85A30"></i>РМК — <b id="leg-rmk"></b></span>
+     </div>
+     <div style="position:relative;height:200px"><canvas id="pie-c" role="img" aria-label="Розподіл типів кас"></canvas></div>
+    </div>
+    <div class="chart-card">
+     <h4>Покриття по типах кас</h4>
+     <div id="coverage-bars" style="display:flex;flex-direction:column;gap:14px;padding-top:8px"></div>
+    </div>
+    <div class="chart-card wide">
+     <h4>Топ-10 маркетів за кількістю обладнання</h4>
+     <div class="leg">
+      <span><i style="background:#378ADD"></i>1С</span>
+      <span><i style="background:#1D9E75"></i>КСО</span>
+      <span><i style="background:#D85A30"></i>РМК</span>
+     </div>
+     <div style="position:relative;height:220px"><canvas id="bar-c" role="img" aria-label="Топ-10 маркетів"></canvas></div>
+    </div>
+   </div>
+  </div>
+ </div>
+
+ <div id="page-log" class="page">
+  <div class="log-page">
+   <h3>Журнал змін</h3>
+   <div id="log-list"></div>
+  </div>
+ </div>
+
+ <div id="modal-area" style="display:none">
+  <div class="modal-wrap">
+   <div class="modal">
+    <h3 id="m-title">Редагувати маркет</h3>
+    <div class="field"><label>№ маркету</label><input id="m-id" type="number"/></div>
+    <div class="field"><label>Кількість 1С кас</label><input id="m-1c" type="number" min="0" value="0"/></div>
+    <div class="field"><label>Кількість КСО</label><input id="m-kso" type="number" min="0" value="0"/></div>
+    <div class="field"><label>Кількість РМК</label><input id="m-rmk" type="number" min="0" value="0"/></div>
+    <div class="field"><label>Черга (номер наступного маркету або порожньо)</label><input id="m-q" type="text" placeholder="напр. 455"/></div>
+    <div class="mbtns">
+     <button class="btn-c" onclick="closeModal()">Скасувати</button>
+     <button class="btn-s" onclick="saveModal()">Зберегти</button>
+    </div>
+   </div>
+  </div>
+ </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+const RAW=[
+ [200,2,0,1,455],[205,3,2,0,415],[210,3,2,0,200],[215,3,2,0,260],[220,3,2,0,null],
+ [225,2,0,1,null],[230,0,0,3,null],[235,3,2,0,null],[240,3,2,0,null],[245,3,2,0,null],
+ [250,3,2,0,null],[255,0,1,2,null],[260,3,3,0,null],[265,1,0,2,null],[270,3,2,0,null],
+ [275,3,2,0,null],[280,3,2,0,null],[285,2,2,0,null],[290,1,0,1,null],[295,3,2,0,null],
+ [300,3,2,0,null],[305,2,1,0,null],[310,3,2,0,null],[315,2,0,1,null],[320,2,0,1,null],
+ [325,2,0,1,null],[330,3,2,0,null],[335,2,0,1,null],[340,2,0,1,null],[345,2,0,1,null],
+ [350,3,0,1,null],[355,2,1,0,null],[360,2,0,1,null],[370,2,2,0,null],[375,2,0,1,null],
+ [380,0,0,3,null],[385,2,0,1,null],[390,2,0,1,null],[395,3,2,0,null],[400,2,1,0,null],
+ [405,2,0,1,null],[410,2,1,0,null],[415,2,3,0,null],[420,0,0,2,null],[425,0,1,2,null],
+ [430,2,0,1,null],[435,3,2,0,null],[440,2,2,0,null],[445,2,2,0,null],[450,3,2,0,null],
+ [455,2,3,0,null],[460,0,0,2,null],[465,2,2,0,null],[470,3,1,0,null],[475,2,2,0,null],
+ [480,0,0,3,null],[485,0,0,4,null],[490,2,1,0,null],[495,3,2,0,null],[500,3,2,0,null],
+ [505,0,0,2,null],[510,2,2,0,null],[515,0,0,2,null],[520,0,1,2,null],[525,0,2,2,null],
+ [535,0,1,2,null],[540,0,1,2,null],[545,0,0,2,null]
+];
+
+let data=RAW.map(r=>({id:r[0],c1:r[1],kso:r[2],rmk:r[3],q:r[4]}));
+let editIdx=-1, logs=[], pieInst=null, barInst=null;
+
+const tot=r=>r.c1+r.kso+r.rmk;
+
+function typePill(r){
+ if(r.kso>0&&r.c1>0)return'<span class="pill p-teal">КСО + 1С</span>';
+ if(r.kso>0&&r.c1===0)return'<span class="pill p-blue">КСО</span>';
+ if(r.c1>0&&r.kso===0&&r.rmk===0)return'<span class="pill p-amber">Тільки 1С</span>';
+ if(r.c1>0)return'<span class="pill p-amber">1С + РМК</span>';
+ return'<span class="pill p-red">Тільки РМК</span>';
+}
+
+function filt(){
+ const q=(document.getElementById('sq').value||'').toLowerCase();
+ const f=document.getElementById('sf').value;
+ const s=document.getElementById('ss').value;
+ let rows=[...data].filter(r=>{
+  const mq=!q||String(r.id).includes(q);
+  let mf=true;
+  if(f==='kso')mf=r.kso>0;
+  else if(f==='1c')mf=r.c1>0;
+  else if(f==='rmk_only')mf=r.c1===0&&r.kso===0&&r.rmk>0;
+  else if(f==='queue')mf=!!r.q;
+  return mq&&mf;
+ });
+ if(s==='id')rows.sort((a,b)=>a.id-b.id);
+ else if(s==='total_d')rows.sort((a,b)=>tot(b)-tot(a));
+ else if(s==='kso_d')rows.sort((a,b)=>b.kso-a.kso);
+ else if(s==='c1_d')rows.sort((a,b)=>b.c1-a.c1);
+ document.getElementById('row-count').textContent=`${rows.length} з ${data.length} маркетів`;
+ document.getElementById('tbl-body').innerHTML=rows.map(r=>{
+  const i=data.indexOf(r);
+  return`<tr>
+   <td style="font-weight:500">#${r.id}</td>
+   <td>${r.c1||'—'}</td><td>${r.kso||'—'}</td><td>${r.rmk||'—'}</td>
+   <td style="font-weight:500">${tot(r)}</td>
+   <td>${typePill(r)}</td>
+   <td style="color:var(--color-text-secondary);font-size:12px">${r.q?'#'+r.q:'—'}</td>
+   <td><button class="eb" onclick="openEdit(${i})">Ред.</button></td>
+  </tr>`;
+ }).join('');
+}
+
+function renderKPI(){
+ const tot1c=data.reduce((s,r)=>s+r.c1,0);
+ const totKso=data.reduce((s,r)=>s+r.kso,0);
+ const totRmk=data.reduce((s,r)=>s+r.rmk,0);
+ const totAll=tot1c+totKso+totRmk;
+ const pct1c=totAll?Math.round(tot1c/totAll*100):0;
+ const pctKso=totAll?Math.round(totKso/totAll*100):0;
+ const pctRmk=totAll?Math.round(totRmk/totAll*100):0;
+ const withKso=data.filter(r=>r.kso>0).length;
+ const withC1=data.filter(r=>r.c1>0).length;
+ const withRmk=data.filter(r=>r.rmk>0).length;
+
+ document.getElementById('kpi-row').innerHTML=`
+  <div class="kpi">
+   <div class="kpi-label">Маркетів всього</div>
+   <div class="kpi-val">${data.length}</div>
+   <div class="kpi-sub">${data.filter(r=>r.q).length} у черзі</div>
+  </div>
+  <div class="kpi">
+   <div class="kpi-label">1С каси</div>
+   <div class="kpi-val" style="color:var(--blue)">${tot1c}</div>
+   <div class="kpi-sub">${withC1} маркетів · ${pct1c}% від всіх кас</div>
+   <div class="kpi-bar-wrap"><div class="kpi-bar" style="width:${pct1c}%;background:var(--blue)"></div></div>
+  </div>
+  <div class="kpi">
+   <div class="kpi-label">КСО</div>
+   <div class="kpi-val" style="color:var(--teal)">${totKso}</div>
+   <div class="kpi-sub">${withKso} маркетів · ${pctKso}% від всіх кас</div>
+   <div class="kpi-bar-wrap"><div class="kpi-bar" style="width:${pctKso}%;background:var(--teal)"></div></div>
+  </div>
+  <div class="kpi">
+   <div class="kpi-label">РМК</div>
+   <div class="kpi-val" style="color:var(--amber)">${totRmk}</div>
+   <div class="kpi-sub">${withRmk} маркетів · ${pctRmk}% від всіх кас</div>
+   <div class="kpi-bar-wrap"><div class="kpi-bar" style="width:${pctRmk}%;background:var(--amber)"></div></div>
+  </div>
+  <div class="kpi">
+   <div class="kpi-label">Кас всього</div>
+   <div class="kpi-val">${totAll}</div>
+   <div class="kpi-sub">середньо ${(totAll/data.length).toFixed(1)} / маркет</div>
+  </div>
+ `;
+
+ const cvg=document.getElementById('coverage-bars');
+ const bars=[
+  {label:'1С каси',val:pct1c,count:tot1c,color:'#378ADD',mk:withC1},
+  {label:'КСО',val:pctKso,count:totKso,color:'#1D9E75',mk:withKso},
+  {label:'РМК',val:pctRmk,count:totRmk,color:'#BA7517',mk:withRmk},
+ ];
+ cvg.innerHTML=bars.map(b=>`
+  <div>
+   <div style="display:flex;justify-content:space-between;margin-bottom:5px;font-size:12px">
+    <span style="color:var(--color-text-primary);font-weight:500">${b.label}</span>
+    <span style="color:var(--color-text-secondary)">${b.count} кас · ${b.mk} маркетів · <b style="color:${b.color}">${b.val}%</b></span>
+   </div>
+   <div style="height:8px;background:var(--color-background-secondary);border-radius:4px;overflow:hidden">
+    <div style="height:100%;width:${b.val}%;background:${b.color};border-radius:4px;transition:width .5s"></div>
+   </div>
+  </div>
+ `).join('');
+
+ document.getElementById('leg-1c').textContent=tot1c;
+ document.getElementById('leg-kso').textContent=totKso;
+ document.getElementById('leg-rmk').textContent=totRmk;
+
+ if(pieInst)pieInst.destroy();
+ pieInst=new Chart(document.getElementById('pie-c'),{
+  type:'doughnut',
+  data:{labels:['1С каси','КСО','РМК'],datasets:[{data:[tot1c,totKso,totRmk],backgroundColor:['#378ADD','#1D9E75','#D85A30'],borderWidth:0,hoverOffset:4}]},
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>{const v=ctx.raw,t=tot1c+totKso+totRmk;return` ${ctx.label}: ${v} (${Math.round(v/t*100)}%)`}}}}}
+ });
+
+ const top10=[...data].sort((a,b)=>tot(b)-tot(a)).slice(0,10);
+ if(barInst)barInst.destroy();
+ barInst=new Chart(document.getElementById('bar-c'),{
+  type:'bar',
+  data:{
+   labels:top10.map(r=>'#'+r.id),
+   datasets:[
+    {label:'1С',data:top10.map(r=>r.c1),backgroundColor:'#378ADD'},
+    {label:'КСО',data:top10.map(r=>r.kso),backgroundColor:'#1D9E75'},
+    {label:'РМК',data:top10.map(r=>r.rmk),backgroundColor:'#D85A30'}
+   ]
+  },
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{stacked:true,ticks:{autoSkip:false,font:{size:11}}},y:{stacked:true,ticks:{stepSize:1}}}}
+ });
+}
+
+function goPage(name,btn){
+ document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
+ document.querySelectorAll('.nav-tab').forEach(b=>b.classList.remove('on'));
+ document.getElementById('page-'+name).classList.add('on');
+ if(btn)btn.classList.add('on');
+ if(name==='dash')setTimeout(renderKPI,50);
+ if(name==='log')renderLog();
+ document.getElementById('modal-area').style.display='none';
+}
+
+function openEdit(i){
+ editIdx=i;const r=data[i];
+ document.getElementById('m-title').textContent='Редагувати маркет #'+r.id;
+ document.getElementById('m-id').value=r.id;document.getElementById('m-id').disabled=true;
+ document.getElementById('m-1c').value=r.c1;
+ document.getElementById('m-kso').value=r.kso;
+ document.getElementById('m-rmk').value=r.rmk;
+ document.getElementById('m-q').value=r.q||'';
+ document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
+ document.getElementById('modal-area').style.display='block';
+}
+function openAdd(){
+ editIdx=-1;
+ document.getElementById('m-title').textContent='Додати маркет';
+ document.getElementById('m-id').disabled=false;
+ ['m-id','m-1c','m-kso','m-rmk','m-q'].forEach(id=>{document.getElementById(id).value='';});
+ document.getElementById('m-1c').value='0';document.getElementById('m-kso').value='0';document.getElementById('m-rmk').value='0';
+ document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
+ document.getElementById('modal-area').style.display='block';
+}
+function closeModal(){
+ document.getElementById('modal-area').style.display='none';
+ document.getElementById('page-table').classList.add('on');
+}
+function saveModal(){
+ const nid=parseInt(document.getElementById('m-id').value)||0;
+ const n1=parseInt(document.getElementById('m-1c').value)||0;
+ const nk=parseInt(document.getElementById('m-kso').value)||0;
+ const nr=parseInt(document.getElementById('m-rmk').value)||0;
+ const nq=document.getElementById('m-q').value.trim();
+ const now=new Date().toLocaleTimeString('uk-UA',{hour:'2-digit',minute:'2-digit'});
+ if(editIdx>=0){
+  const o=data[editIdx];
+  logs.unshift({time:now,msg:`Маркет #${o.id}: 1С ${o.c1}→${n1}, КСО ${o.kso}→${nk}, РМК ${o.rmk}→${nr}`});
+  data[editIdx]={id:nid,c1:n1,kso:nk,rmk:nr,q:nq?parseInt(nq):null};
+ } else {
+  if(!nid)return;
+  data.push({id:nid,c1:n1,kso:nk,rmk:nr,q:nq?parseInt(nq):null});
+  logs.unshift({time:now,msg:`Додано маркет #${nid}: 1С ${n1}, КСО ${nk}, РМК ${nr}`});
+ }
+ closeModal();filt();
+}
+function renderLog(){
+ const ll=document.getElementById('log-list');
+ if(!logs.length){ll.innerHTML='<div class="log-empty">Змін ще не було</div>';return;}
+ ll.innerHTML='<div class="log-wrap">'+logs.map(e=>`
+  <div class="log-item">
+   <div class="log-dot"></div>
+   <div class="log-time">${e.time}</div>
+   <div style="color:var(--color-text-primary)">${e.msg}</div>
+  </div>`).join('')+'</div>';
+}
+
+filt();
+</script>
