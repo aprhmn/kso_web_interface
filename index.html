@@ -1,0 +1,1234 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QA Tracker</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #070b10;
+      --card: #0f1724;
+      --line: #243044;
+      --text: #e8eef5;
+      --muted: #8fa3b8;
+      --input-bg: #0a1018;
+      --table-head: #152232;
+      --accent: #00b894;
+      --accent-dark: #009878;
+      --nav: #0b1a2f;
+      --nav-muted: #8ca0ba;
+      --pass: #22c55e;
+      --fail: #ef4444;
+      --blocked: #eab308;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Arial, sans-serif;
+      color: var(--text);
+      background: var(--bg);
+    }
+
+    .layout {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 280px 1fr;
+    }
+
+    .sidebar {
+      background: var(--nav);
+      color: #fff;
+      padding: 24px 16px;
+      min-height: 100vh;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .brand {
+      color: #22d3aa;
+      font-weight: 700;
+      font-size: 24px;
+      margin: 0 0 16px;
+    }
+
+    .sidebar-group {
+      border: 1px solid rgba(140, 160, 186, 0.25);
+      background: rgba(9, 20, 38, 0.6);
+      border-radius: 12px;
+      padding: 14px;
+      margin-bottom: 0;
+    }
+
+    .sidebar-title {
+      margin: 0 0 12px;
+      font-size: 12px;
+      color: var(--nav-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.7px;
+    }
+
+    .content {
+      padding: 24px;
+      min-width: 0;
+    }
+
+    .panel {
+      max-width: 1300px;
+      margin: 0 auto;
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: flex-start;
+      margin-bottom: 14px;
+      flex-wrap: wrap;
+    }
+
+    h1 { margin: 0; font-size: 34px; }
+
+    .progress-wrap {
+      margin-top: 10px;
+      max-width: 420px;
+    }
+
+    .progress-text {
+      font-size: 14px;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+
+    .progress-text strong {
+      color: var(--text);
+    }
+
+    .progress-bar {
+      height: 8px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--accent), #34d399);
+      border-radius: 999px;
+      transition: width 0.25s ease;
+    }
+
+    .save-indicator {
+      font-size: 12px;
+      color: var(--muted);
+      opacity: 0;
+      transition: opacity 0.2s ease;
+      white-space: nowrap;
+      align-self: center;
+    }
+
+    .save-indicator.visible {
+      opacity: 1;
+      color: #6ee7b7;
+    }
+
+    .section-nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+
+    .section-nav:empty { display: none; }
+
+    .section-nav-btn {
+      border: 1px solid var(--line);
+      background: var(--input-bg);
+      color: var(--muted);
+      border-radius: 999px;
+      padding: 5px 12px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+
+    .section-nav-btn:hover {
+      border-color: var(--accent);
+      color: var(--text);
+    }
+
+    .app-tabs { display: flex; gap: 8px; flex-wrap: wrap; }
+    .app-tab {
+      border: none;
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-weight: 700;
+      cursor: pointer;
+      background: rgba(34, 211, 170, 0.14);
+      color: #7dd3c0;
+    }
+    .app-tab:hover { background: rgba(34, 211, 170, 0.24); }
+    .app-tab.active { background: var(--accent); color: #fff; }
+
+    .sidebar-controls {
+      display: grid;
+      gap: 10px;
+      margin-top: 12px;
+    }
+
+    .version-wrap {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(0, 184, 148, 0.08);
+      border: 1px solid rgba(0, 184, 148, 0.22);
+      border-radius: 10px;
+      padding: 8px 10px;
+    }
+
+    .version-wrap label {
+      color: #7dd3c0;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .version-wrap input {
+      width: 150px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 7px 8px;
+      background: var(--input-bg);
+      color: var(--text);
+    }
+
+    button.action {
+      border: none;
+      border-radius: 10px;
+      padding: 12px 14px;
+      background: var(--accent);
+      color: #fff;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      width: 100%;
+      text-align: left;
+    }
+    button.action:hover { background: var(--accent-dark); }
+    button.secondary { background: #2563eb; }
+    button.secondary:hover { background: #1d4ed8; }
+    button.danger { background: #dc2626; }
+    button.danger:hover { background: #b91c1c; }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      overflow: hidden;
+      background: var(--card);
+    }
+    .table-wrap {
+      width: 100%;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      border-radius: 12px;
+    }
+    th, td {
+      border: 1px solid var(--line);
+      padding: 9px;
+      text-align: left;
+      vertical-align: top;
+    }
+    th {
+      background: var(--table-head);
+      font-size: 13px;
+      color: var(--text);
+    }
+    input, textarea {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      padding: 8px;
+      font-size: 14px;
+      background: var(--input-bg);
+      color: var(--text);
+      font-family: inherit;
+    }
+    input::placeholder,
+    textarea::placeholder {
+      color: var(--muted);
+      opacity: 0.9;
+    }
+    input:focus,
+    textarea:focus {
+      outline: 2px solid rgba(0, 184, 148, 0.35);
+      outline-offset: 1px;
+      border-color: var(--accent);
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 56px;
+      line-height: 1.3;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+
+    .item-name-input { min-height: 82px; }
+
+    .row-num {
+      text-align: center;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+      vertical-align: middle;
+      user-select: none;
+    }
+
+    .section-row > td {
+      background: rgba(0, 184, 148, 0.1);
+      border-top: 2px solid rgba(0, 184, 148, 0.35);
+      padding: 10px 12px;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .section-marker {
+      color: var(--accent);
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      white-space: nowrap;
+    }
+
+    .section-title-input {
+      flex: 1;
+      font-weight: 700;
+      font-size: 15px;
+      background: transparent;
+      border: 1px dashed transparent;
+      padding: 6px 8px;
+    }
+
+    .section-title-input:hover,
+    .section-title-input:focus {
+      border-color: rgba(0, 184, 148, 0.45);
+      background: rgba(0, 0, 0, 0.15);
+    }
+
+    .status-cell { vertical-align: middle; }
+
+    .status-controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .status-quick-btn {
+      width: 36px;
+      height: 36px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--input-bg);
+      cursor: pointer;
+      font-size: 16px;
+      line-height: 1;
+      padding: 0;
+      opacity: 0.55;
+      transition: opacity 0.15s, transform 0.1s, border-color 0.15s;
+    }
+
+    .status-quick-btn:hover {
+      opacity: 1;
+      transform: scale(1.06);
+    }
+
+    .status-quick-btn.active {
+      opacity: 1;
+      border-color: currentColor;
+      box-shadow: 0 0 0 1px currentColor inset;
+    }
+
+    .status-quick-btn[data-status="пройдено"].active { color: var(--pass); background: rgba(34, 197, 94, 0.15); }
+    .status-quick-btn[data-status="провалено"].active { color: var(--fail); background: rgba(239, 68, 68, 0.15); }
+    .status-quick-btn[data-status="заблоковано"].active { color: var(--blocked); background: rgba(234, 179, 8, 0.15); }
+
+    .status-badge {
+      min-width: 88px;
+      border: 1px dashed var(--line);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.03);
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+      padding: 7px 10px;
+      cursor: pointer;
+      text-align: center;
+    }
+
+    .status-badge:hover { border-color: var(--accent); color: var(--text); }
+    .status-badge[data-status="пройдено"] { color: #bbf7d0; background: rgba(34, 197, 94, 0.18); border-style: solid; }
+    .status-badge[data-status="провалено"] { color: #fecaca; background: rgba(239, 68, 68, 0.18); border-style: solid; }
+    .status-badge[data-status="заблоковано"] { color: #fef08a; background: rgba(234, 179, 8, 0.16); border-style: solid; }
+    .status-badge[data-status="пропущено"] { color: #bae6fd; background: rgba(56, 189, 248, 0.16); border-style: solid; }
+    .status-badge[data-status="готово"] { color: #e9d5ff; background: rgba(168, 85, 247, 0.18); border-style: solid; }
+    .status-badge[data-status="відхилено"] { color: #fecaca; background: rgba(248, 113, 113, 0.18); border-style: solid; }
+
+    .comment-cell { cursor: text; }
+
+    .comment-display {
+      min-height: 36px;
+      padding: 8px;
+      border-radius: 7px;
+      border: 1px dashed transparent;
+      color: var(--text);
+      line-height: 1.35;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+
+    .comment-display:hover {
+      border-color: rgba(0, 184, 148, 0.35);
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .comment-display.empty {
+      color: var(--muted);
+      font-style: italic;
+    }
+
+    .comment-display.collapsed {
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .comment-expand-btn {
+      margin-top: 4px;
+      border: none;
+      background: none;
+      color: var(--accent);
+      font-size: 12px;
+      cursor: pointer;
+      padding: 0;
+    }
+
+    .comment-input.hidden { display: none; }
+
+    .version-wrap.sidebar-version {
+      margin-top: 0;
+      background: rgba(12, 47, 42, 0.45);
+      border-color: rgba(110, 231, 183, 0.25);
+      margin-bottom: 8px;
+    }
+
+    .version-wrap.sidebar-version label { color: #a7f3d0; }
+    .version-wrap.sidebar-version input {
+      background: #0f2938;
+      color: #e2e8f0;
+      border-color: #1f3d4d;
+    }
+
+    .actions-th {
+      width: 1%;
+      white-space: nowrap;
+      text-align: right;
+      font-weight: 700;
+    }
+    .actions-cell {
+      vertical-align: middle;
+      width: 1%;
+      padding: 6px 8px;
+    }
+    .row-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      justify-content: flex-end;
+      align-items: center;
+    }
+    .row-action-btn {
+      box-sizing: border-box;
+      min-width: 32px;
+      height: 32px;
+      padding: 0 6px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--input-bg);
+      color: var(--text);
+      font-size: 14px;
+      line-height: 1;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .row-action-btn:hover {
+      background: var(--table-head);
+      border-color: rgba(0, 184, 148, 0.45);
+    }
+    .row-action-delete {
+      border-color: rgba(239, 68, 68, 0.4);
+      color: #fecaca;
+      background: rgba(239, 68, 68, 0.1);
+    }
+    .row-action-delete:hover {
+      background: #dc2626;
+      color: #fff;
+      border-color: #dc2626;
+    }
+
+    tbody tr.test-row > td:nth-child(2) { transition: background-color 0.15s ease; }
+    tbody tr.row-theme-verdict > td:nth-child(2) { background: rgba(234, 179, 8, 0.14); }
+    tbody tr.row-theme-returns > td:nth-child(2) { background: rgba(244, 63, 94, 0.12); }
+    tbody tr.row-theme-reports > td:nth-child(2) { background: rgba(56, 189, 248, 0.11); }
+    tbody tr.row-theme-weborder > td:nth-child(2) { background: rgba(167, 139, 250, 0.13); }
+    tbody tr.row-theme-scan > td:nth-child(2) { background: rgba(34, 211, 238, 0.1); }
+    tbody tr.row-theme-update > td:nth-child(2) { background: rgba(129, 140, 248, 0.12); }
+    tbody tr.row-theme-startup > td:nth-child(2) { background: rgba(96, 165, 250, 0.11); }
+
+    @media (max-width: 1100px) {
+      .layout { grid-template-columns: 220px 1fr; }
+      .content { padding: 16px; }
+      .panel { padding: 16px; }
+      h1 { font-size: 28px; }
+    }
+
+    @media (max-width: 840px) {
+      .layout { grid-template-columns: 1fr; }
+      .sidebar { min-height: auto; padding: 14px; gap: 12px; }
+      .brand { margin: 0; font-size: 21px; }
+      .sidebar-group { padding: 12px; }
+      button.action { text-align: center; }
+      .content { padding: 12px; }
+      .panel { padding: 12px; }
+      h1 { font-size: 24px; }
+      .table-wrap table { min-width: 820px; }
+      th, td { padding: 8px; }
+    }
+
+    @media (max-width: 520px) {
+      .version-wrap { flex-direction: column; align-items: stretch; gap: 6px; }
+      .version-wrap input { width: 100%; }
+      .app-tabs { display: grid; grid-template-columns: 1fr 1fr; }
+      .app-tab { width: 100%; }
+      h1 { font-size: 22px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <h2 class="brand">QA TA-DA Checout</h2>
+      <div class="sidebar-group">
+        <p class="sidebar-title">Цифрова касова система</p>
+        <div class="app-tabs">
+          <button type="button" class="app-tab active" data-app-key="RMK">РМК</button>
+          <button type="button" class="app-tab" data-app-key="KSO">КСО</button>
+          <button type="button" class="app-tab" data-app-key="RMB">РМБ</button>
+          <button type="button" class="app-tab" data-app-key="RMK_CATALOG">РМК(КАТАЛОГ)</button>
+          <button type="button" class="app-tab" data-app-key="FOODCORT">ФУДКОРТ</button>
+        </div>
+      </div>
+      <div class="sidebar-group">
+        <p class="sidebar-title">Керування</p>
+        <div class="version-wrap sidebar-version">
+          <label for="globalVersionInput">Версія</label>
+          <input id="globalVersionInput" type="text" placeholder="наприклад 1.9.8">
+        </div>
+        <div class="sidebar-controls">
+          <button id="addSectionBtn" type="button" class="action">Додати секцію</button>
+          <button id="addTestBtn" type="button" class="action">Додати тест</button>
+          <button id="refreshVersionBtn" type="button" class="action">Оновити версію</button>
+          <button id="resetAllBtn" type="button" class="action danger">Скинути все</button>
+          <button id="saveFileBtn" type="button" class="action secondary">Зберегти у файл (Excel)</button>
+        </div>
+      </div>
+    </aside>
+    <main class="content">
+      <section class="panel">
+        <div class="topbar">
+          <div>
+            <h1>Список smoke/regression тестів</h1>
+            <div class="progress-wrap">
+              <div id="progressText" class="progress-text">0/0 пройдено (0%)</div>
+              <div class="progress-bar"><div id="progressFill" class="progress-fill"></div></div>
+            </div>
+          </div>
+          <span id="saveIndicator" class="save-indicator">Збережено</span>
+        </div>
+
+        <nav id="sectionNav" class="section-nav" aria-label="Секції тестів"></nav>
+
+        <div class="table-wrap">
+          <table>
+            <colgroup>
+              <col style="width: 4%;">
+              <col style="width: 34%;">
+              <col style="width: 14%;">
+              <col style="width: 38%;">
+              <col style="width: 10%;">
+            </colgroup>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Назва пункту</th>
+                <th>Статус</th>
+                <th>Коментар</th>
+                <th class="actions-th" title="Дублювати, очистити або видалити">Дії</th>
+              </tr>
+            </thead>
+            <tbody id="tableBody"></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script>
+    const STORAGE_KEY = "qaTestTableDataV5";
+    const QUICK_STATUSES = ["пройдено", "провалено", "заблоковано"];
+    const CYCLE_STATUSES = ["", "пройдено", "провалено", "заблоковано"];
+    const STATUS_ICONS = { пройдено: "✅", провалено: "❌", заблоковано: "⏸" };
+    const ROW_THEME_PREFIX = "row-theme-";
+    const COMMENT_COLLAPSE_LEN = 90;
+    const SAVE_DEBOUNCE_MS = 250;
+
+    function getRowThemeClass(itemName) {
+      const raw = itemName || "";
+      const t = raw.toLowerCase();
+      const paymentLikeStart = /^\s*(п\d+\s+)?(💳|оплат)/i.test(raw);
+      if (/загальний\s+вердикт/i.test(raw)) return `${ROW_THEME_PREFIX}verdict`;
+      if (/🔁|повернення/i.test(raw)) return `${ROW_THEME_PREFIX}returns`;
+      if (/x-звіт|z-звіт/i.test(t)) return `${ROW_THEME_PREFIX}reports`;
+      if (/інтернет[-\s]*замовлення/i.test(t) && !paymentLikeStart) return `${ROW_THEME_PREFIX}weborder`;
+      if (/🔍|\bскануван/i.test(raw)) return `${ROW_THEME_PREFIX}scan`;
+      if (/оновлен|firebase/i.test(t)) return `${ROW_THEME_PREFIX}update`;
+      if (/запуск\s+та\s+стабільність/i.test(t)) return `${ROW_THEME_PREFIX}startup`;
+      return `${ROW_THEME_PREFIX}default`;
+    }
+
+    function withSections(groups) {
+      const rows = [];
+      groups.forEach(({ title, tests }) => {
+        rows.push({ type: "section", itemName: title, status: "", comment: "" });
+        tests.forEach((itemName) => rows.push({ type: "test", itemName, status: "", comment: "" }));
+      });
+      return rows;
+    }
+
+    const rmkSections = withSections([
+      {
+        title: "Оновлення та запуск",
+        tests: [
+          "Оновлення: Апка проходить етап оновлення через Firebase та успішно запускається.",
+          "Запуск та стабільність: Апка запускається, успішно підключається до сервера та периферії."
+        ]
+      },
+      {
+        title: "Сканування та товари",
+        tests: [
+          "🔍Сканування (ШК): Звичайний товар зі штрих-кодом додається в кошик з коректною ціною.",
+          "🔍Сканування (ШК/QR): бейдж-касира, бонусної картки клієнта за QR.",
+          "Лояльність: Картка клієнта зчитується, бонуси/знижки відображаються на екрані.",
+          "Ваговий товар: Апка правильно зчитує вагу та розраховує вартість за кг."
+        ]
+      },
+      {
+        title: "Оплата",
+        tests: [
+          "💳Оплата карткою по двом робочим зонам (РМК/КСО): Термінал активується, транзакція проходить успішно.",
+          "Фіналізація: Друк фіскального чека виконано, сесія закрита, апка повернулася в старт.",
+          "💳Оплата готівкою по двом робочим зонам (РМК/КСО): Введення суми прийнятих коштів працює, решта розрахована вірно.",
+          "Решта на бонусну: При оплаті готівкою решта коректно зараховується на бонусну картку з урахуванням округлення.",
+          "Фіналізація: Друк фіскального чека виконано, сесія закрита, апка повернулася в старт.",
+          "💳Оплата з використанням бонусів по двом робочи зонам (РМК/КСО): перехід до вибору оплати, відповідна сума виведення на термінал, фінальна сума розрахована вірно.",
+          "💳Оплата з використанням повної оплати бонусами по двом робочи зонам (РМК/КСО): перехід до вибору оплати, відповідна сума виведення на термінал, фінальна сума розрахована вірно.",
+          "💳Оплата за допомогою функціоналу (без готівка вручну)."
+        ]
+      },
+      {
+        title: "Інтернет-замовлення",
+        tests: [
+          "Інтернет-замовлення: Пошук інтернет-замовлення за номером працює, склад замовлення відображається коректно, кількість товару відовідна до реалізації.",
+          "💳Оплата карткою інтернет замовлення з використанням бонусів.",
+          "💳Оплата готівкою інтернет замовлення з використанням бонусів."
+        ]
+      },
+      {
+        title: "Повернення",
+        tests: [
+          "🔁Повернення товару (картка): Повернення на карту ініційовано, транзакція успішна, чек надруковано.",
+          "🔁Повернення товару (готівка): Повернення оформлюється, сума повернення коректна, чек повернення надруковано.",
+          "🔁Повернення товару (картка): Повернення на карту ініційовано, транзакція успішна, чек надруковано."
+        ]
+      },
+      {
+        title: "Звіти та вердикт",
+        tests: [
+          "X-звіт: Формування X-звіту працює, дані відображаються коректно, друк виконано. Z-звіт: Закриття зміни з формуванням Z-звіту працює, чек надруковано, зміна закрита.",
+          "ЗАГАЛЬНИЙ ВЕРДИКТ"
+        ]
+      }
+    ]);
+
+    const ksoSections = withSections([
+      {
+        title: "Оновлення та запуск",
+        tests: [
+          "П1 Оновлення: Апка проходить етап оновлення через Firebase та успішно запускається.",
+          "П2 Запуск та стабільність: Апка запускається, успішно підключається до сервера та периферії."
+        ]
+      },
+      {
+        title: "Сканування та товари",
+        tests: [
+          "П3 🔍Сканування (ШК): Звичайний товар зі штрих-кодом додається в кошик з коректною ціною.",
+          "П4 🔍Сканування (ШК/QR): бейдж-касира, бонусної картки клієнта за QR.",
+          "П5 Лояльність: Картка клієнта зчитується, бонуси/знижки відображаються на екрані.",
+          "П6 Ваговий товар: Апка правильно зчитує вагу та розраховує вартість за кг."
+        ]
+      },
+      {
+        title: "Оплата",
+        tests: [
+          "П7 💳Оплата карткою: Термінал активується, транзакція проходить успішно.",
+          "П8 Фіналізація: Друк фіскального чека виконано, сесія закрита, апка повернулася в старт.",
+          "П9 💳Оплата з використанням бонусів: перехід до вибору оплати, відповідна сума виведення на термінал, фінальна сума розрахована вірно.",
+          "П10 Фіналізація: Друк фіскального чека виконано, сесія закрита, апка повернулася в старт.",
+          "П11 💳Оплата повною кількістю бонусів: обрати акційні або харчовий товар та провести оплату способом повна оплата бонусами.",
+          "П12 Фіналізація: Друк фіскального чека виконано, сесія закрита, апка повернулася в старт."
+        ]
+      },
+      {
+        title: "Повернення та додатково",
+        tests: [
+          "П13 🔁Повернення товару (картка): Повернення на карту ініційовано, транзакція успішна, чек надруковано.",
+          "П14 💳Безнал вручну: Ручне введення суми безготівкової оплати працює коректно, транзакція проходить успішно, чек надруковано."
+        ]
+      },
+      {
+        title: "Звіти",
+        tests: [
+          "П15 X-звіт/Z-звіт: Формування X-звіту і закриття зміни з Z-звітом працює коректно, чеки друкуються."
+        ]
+      }
+    ]);
+
+    const APP_CONFIG = {
+      RMK: { label: "РМК", defaultVersion: "1.0.0", defaultRows: rmkSections },
+      KSO: { label: "КСО", defaultVersion: "1.0.0", defaultRows: ksoSections },
+      RMB: { label: "РМБ", defaultVersion: "1.0.0", defaultRows: [] },
+      RMK_CATALOG: { label: "РМК(КАТАЛОГ)", defaultVersion: "1.0.0", defaultRows: [] },
+      FOODCORT: { label: "ФУДКОРТ", defaultVersion: "1.0.0", defaultRows: [] }
+    };
+
+    function createDefaultState(activeApp = "RMK") {
+      const versionsByApp = {};
+      const rowsByApp = {};
+      Object.keys(APP_CONFIG).forEach((appKey) => {
+        versionsByApp[appKey] = APP_CONFIG[appKey].defaultVersion;
+        rowsByApp[appKey] = APP_CONFIG[appKey].defaultRows.map((row) => ({ ...row }));
+      });
+      return { activeApp, versionsByApp, rowsByApp };
+    }
+
+    function normalizeRow(row) {
+      if (!row || typeof row !== "object") return { type: "test", itemName: "", status: "", comment: "" };
+      const type = row.type === "section" ? "section" : "test";
+      return {
+        type,
+        itemName: row.itemName || "",
+        status: type === "test" ? (row.status || "") : "",
+        comment: type === "test" ? (row.comment || "") : ""
+      };
+    }
+
+    function migrateLegacyRows(rows) {
+      if (!Array.isArray(rows) || !rows.length) return rows;
+      if (rows.some((row) => row.type === "section")) return rows.map(normalizeRow);
+      return rows.map((row) => normalizeRow(row));
+    }
+
+    const tableBody = document.getElementById("tableBody");
+    const sectionNav = document.getElementById("sectionNav");
+    const progressText = document.getElementById("progressText");
+    const progressFill = document.getElementById("progressFill");
+    const saveIndicator = document.getElementById("saveIndicator");
+    const appTabs = document.querySelectorAll(".app-tab");
+    const addSectionBtn = document.getElementById("addSectionBtn");
+    const addTestBtn = document.getElementById("addTestBtn");
+    const refreshVersionBtn = document.getElementById("refreshVersionBtn");
+    const resetAllBtn = document.getElementById("resetAllBtn");
+    const saveFileBtn = document.getElementById("saveFileBtn");
+    const globalVersionInput = document.getElementById("globalVersionInput");
+
+    let state = createDefaultState();
+    let saveTimer = null;
+    let saveIndicatorTimer = null;
+    let sectionCounter = 0;
+
+    function escapeHtml(text) {
+      return String(text)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+
+    function statusLabel(status) {
+      if (!status) return "— статус —";
+      return `${STATUS_ICONS[status] || "•"} ${status}`;
+    }
+
+    function nextCycleStatus(current) {
+      const idx = CYCLE_STATUSES.indexOf(current || "");
+      return CYCLE_STATUSES[(idx + 1) % CYCLE_STATUSES.length];
+    }
+
+    function updateStatusUI(row, status) {
+      row.dataset.status = status;
+      const badge = row.querySelector(".status-badge");
+      badge.dataset.status = status;
+      badge.textContent = statusLabel(status);
+      row.querySelectorAll(".status-quick-btn").forEach((btn) => {
+        btn.classList.toggle("active", btn.dataset.status === status);
+      });
+    }
+
+    function syncCommentDisplay(row) {
+      const input = row.querySelector(".comment-input");
+      const display = row.querySelector(".comment-display");
+      if (!input || !display) return;
+      const value = input.value.trim();
+      display.textContent = value || "Додати коментар…";
+      display.classList.toggle("empty", !value);
+      const needsCollapse = value.length > COMMENT_COLLAPSE_LEN;
+      display.classList.toggle("collapsed", needsCollapse && !display.dataset.expanded);
+      let expandBtn = row.querySelector(".comment-expand-btn");
+      if (needsCollapse) {
+        if (!expandBtn) {
+          expandBtn = document.createElement("button");
+          expandBtn.type = "button";
+          expandBtn.className = "comment-expand-btn";
+          display.insertAdjacentElement("afterend", expandBtn);
+        }
+        expandBtn.textContent = display.dataset.expanded === "1" ? "Згорнути" : "Розгорнути";
+        expandBtn.hidden = false;
+      } else if (expandBtn) {
+        expandBtn.hidden = true;
+        display.dataset.expanded = "";
+      }
+    }
+
+    function openCommentEditor(row) {
+      const display = row.querySelector(".comment-display");
+      const input = row.querySelector(".comment-input");
+      if (!display || !input) return;
+      display.hidden = true;
+      const expandBtn = row.querySelector(".comment-expand-btn");
+      if (expandBtn) expandBtn.hidden = true;
+      input.classList.remove("hidden");
+      input.focus();
+      autoResizeTextarea(input);
+    }
+
+    function closeCommentEditor(row, save = true) {
+      const display = row.querySelector(".comment-display");
+      const input = row.querySelector(".comment-input");
+      if (!display || !input) return;
+      input.classList.add("hidden");
+      display.hidden = false;
+      if (save) syncCommentDisplay(row);
+    }
+
+    function createSectionRow(rowData = { itemName: "Нова секція" }) {
+      sectionCounter += 1;
+      const sectionId = `section-${sectionCounter}`;
+      const row = document.createElement("tr");
+      row.className = "section-row";
+      row.dataset.sectionId = sectionId;
+      row.innerHTML = `
+        <td colspan="5">
+          <div class="section-header">
+            <span class="section-marker">Секція</span>
+            <input class="section-title-input" type="text" value="${escapeHtml(rowData.itemName || "Нова секція")}" placeholder="Назва секції">
+          </div>
+        </td>
+      `;
+      return row;
+    }
+
+    function createTestRow(rowData = { itemName: "", status: "", comment: "" }) {
+      const row = document.createElement("tr");
+      row.className = "test-row";
+      row.innerHTML = `
+        <td class="row-num"></td>
+        <td><textarea class="item-name-input">${escapeHtml(rowData.itemName || "")}</textarea></td>
+        <td class="status-cell">
+          <div class="status-controls">
+            <button type="button" class="status-quick-btn" data-status="пройдено" title="Пройдено">✅</button>
+            <button type="button" class="status-quick-btn" data-status="провалено" title="Провалено">❌</button>
+            <button type="button" class="status-quick-btn" data-status="заблоковано" title="Заблоковано">⏸</button>
+            <button type="button" class="status-badge" title="Клік — циклічна зміна статусу">— статус —</button>
+          </div>
+        </td>
+        <td class="comment-cell">
+          <div class="comment-display empty" tabindex="0">Додати коментар…</div>
+          <textarea class="comment-input hidden" placeholder="Коментар…">${escapeHtml(rowData.comment || "")}</textarea>
+        </td>
+        <td class="actions-cell">
+          <div class="row-actions">
+            <button type="button" class="row-action-btn row-action-duplicate" title="Дублювати" aria-label="Дублювати">⧉</button>
+            <button type="button" class="row-action-btn row-action-clear" title="Очистити" aria-label="Очистити">↺</button>
+            <button type="button" class="row-action-btn row-action-delete" title="Видалити" aria-label="Видалити">🗑</button>
+          </div>
+        </td>
+      `;
+      updateStatusUI(row, rowData.status || "");
+      syncCommentDisplay(row);
+      row.querySelectorAll("textarea").forEach(autoResizeTextarea);
+      updateRowTheme(row);
+      return row;
+    }
+
+    function createRow(rowData) {
+      const normalized = normalizeRow(rowData);
+      return normalized.type === "section" ? createSectionRow(normalized) : createTestRow(normalized);
+    }
+
+    function updateRowTheme(tr) {
+      if (!tr || !tr.classList.contains("test-row")) return;
+      const nameInput = tr.querySelector(".item-name-input");
+      const nextClass = getRowThemeClass(nameInput ? nameInput.value : "");
+      [...tr.classList].filter((c) => c.startsWith(ROW_THEME_PREFIX)).forEach((c) => tr.classList.remove(c));
+      tr.classList.add(nextClass);
+    }
+
+    function readRowFromTr(tr) {
+      if (tr.classList.contains("section-row")) {
+        return {
+          type: "section",
+          itemName: tr.querySelector(".section-title-input").value,
+          status: "",
+          comment: ""
+        };
+      }
+      return {
+        type: "test",
+        itemName: tr.querySelector(".item-name-input").value,
+        status: tr.dataset.status || "",
+        comment: tr.querySelector(".comment-input").value
+      };
+    }
+
+    function readRowsFromTable() {
+      return Array.from(tableBody.querySelectorAll("tr")).map(readRowFromTr);
+    }
+
+    function updateRowNumbers() {
+      let num = 0;
+      tableBody.querySelectorAll("tr.test-row").forEach((row) => {
+        num += 1;
+        row.querySelector(".row-num").textContent = num;
+      });
+    }
+
+    function updateProgress() {
+      const tests = readRowsFromTable().filter((row) => row.type === "test");
+      const total = tests.length;
+      const passed = tests.filter((row) => row.status === "пройдено").length;
+      const percent = total ? Math.round((passed / total) * 100) : 0;
+      progressText.innerHTML = `<strong>${passed}/${total}</strong> пройдено (${percent}%)`;
+      progressFill.style.width = `${percent}%`;
+    }
+
+    function updateSectionNav() {
+      sectionNav.innerHTML = "";
+      tableBody.querySelectorAll("tr.section-row").forEach((row) => {
+        const title = row.querySelector(".section-title-input").value.trim() || "Секція";
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "section-nav-btn";
+        btn.textContent = title;
+        btn.addEventListener("click", () => {
+          row.scrollIntoView({ behavior: "smooth", block: "start" });
+        });
+        sectionNav.appendChild(btn);
+      });
+    }
+
+    function saveActiveAppRows() {
+      state.rowsByApp[state.activeApp] = readRowsFromTable();
+      state.versionsByApp[state.activeApp] = globalVersionInput.value.trim();
+    }
+
+    function flushSave() {
+      saveActiveAppRows();
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      saveIndicator.classList.add("visible");
+      clearTimeout(saveIndicatorTimer);
+      saveIndicatorTimer = setTimeout(() => saveIndicator.classList.remove("visible"), 1200);
+    }
+
+    function scheduleSave() {
+      clearTimeout(saveTimer);
+      saveTimer = setTimeout(flushSave, SAVE_DEBOUNCE_MS);
+    }
+
+    function saveData() {
+      scheduleSave();
+    }
+
+    function renderRows(rows) {
+      tableBody.innerHTML = "";
+      rows.forEach((rowData) => tableBody.appendChild(createRow(rowData)));
+      globalVersionInput.value = state.versionsByApp[state.activeApp] || "";
+      updateRowNumbers();
+      updateProgress();
+      updateSectionNav();
+    }
+
+    function autoResizeTextarea(textarea) {
+      textarea.style.height = "auto";
+      textarea.style.height = `${textarea.scrollHeight}px`;
+    }
+
+    function setActiveTabUI() {
+      appTabs.forEach((tab) => tab.classList.toggle("active", tab.dataset.appKey === state.activeApp));
+    }
+
+    function switchApp(appKey) {
+      flushSave();
+      saveActiveAppRows();
+      state.activeApp = appKey;
+      setActiveTabUI();
+      renderRows(state.rowsByApp[state.activeApp] || []);
+      flushSave();
+    }
+
+    function loadData() {
+      const rawData = localStorage.getItem(STORAGE_KEY);
+      if (!rawData) {
+        setActiveTabUI();
+        renderRows(state.rowsByApp[state.activeApp]);
+        flushSave();
+        return;
+      }
+      try {
+        const parsed = JSON.parse(rawData);
+        if (parsed && parsed.rowsByApp && parsed.versionsByApp) {
+          state = createDefaultState(parsed.activeApp in APP_CONFIG ? parsed.activeApp : "RMK");
+          Object.keys(APP_CONFIG).forEach((appKey) => {
+            if (Array.isArray(parsed.rowsByApp[appKey])) {
+              state.rowsByApp[appKey] = migrateLegacyRows(parsed.rowsByApp[appKey]);
+            }
+            if (typeof parsed.versionsByApp[appKey] === "string") {
+              state.versionsByApp[appKey] = parsed.versionsByApp[appKey];
+            }
+          });
+        }
+      } catch (error) {
+        // fallback to defaults
+      }
+      setActiveTabUI();
+      renderRows(state.rowsByApp[state.activeApp]);
+    }
+
+    function clearStatusesOnly() {
+      tableBody.querySelectorAll("tr.test-row").forEach((row) => updateStatusUI(row, ""));
+      updateProgress();
+      saveData();
+    }
+
+    function exportToExcelFile() {
+      if (typeof XLSX === "undefined") {
+        alert("Не вдалося завантажити бібліотеку для Excel-експорту.");
+        return;
+      }
+      flushSave();
+      const workbook = XLSX.utils.book_new();
+      Object.keys(APP_CONFIG).forEach((appKey) => {
+        const rows = state.rowsByApp[appKey] || [];
+        if (!rows.length) return;
+        const version = state.versionsByApp[appKey] || "";
+        let testNum = 0;
+        const sheetData = rows.map((row) => {
+          if (row.type === "section") {
+            return {
+              "Застосунок": APP_CONFIG[appKey].label,
+              "Версія": version,
+              "№": "",
+              "Назва пункту": `[СЕКЦІЯ] ${row.itemName}`,
+              "Статус": "",
+              "Коментар": ""
+            };
+          }
+          testNum += 1;
+          return {
+            "Застосунок": APP_CONFIG[appKey].label,
+            "Версія": version,
+            "№": testNum,
+            "Назва пункту": row.itemName,
+            "Статус": row.status,
+            "Коментар": row.comment
+          };
+        });
+        const sheet = XLSX.utils.json_to_sheet(sheetData);
+        XLSX.utils.book_append_sheet(workbook, sheet, APP_CONFIG[appKey].label.slice(0, 31));
+      });
+      XLSX.writeFile(workbook, "qa-test-report.xlsx");
+    }
+
+    loadData();
+
+    addSectionBtn.addEventListener("click", () => {
+      tableBody.appendChild(createSectionRow());
+      updateSectionNav();
+      saveData();
+    });
+
+    addTestBtn.addEventListener("click", () => {
+      tableBody.appendChild(createTestRow());
+      updateRowNumbers();
+      updateProgress();
+      saveData();
+    });
+
+    refreshVersionBtn.addEventListener("click", clearStatusesOnly);
+
+    resetAllBtn.addEventListener("click", () => {
+      state = createDefaultState();
+      localStorage.removeItem(STORAGE_KEY);
+      setActiveTabUI();
+      renderRows(state.rowsByApp[state.activeApp]);
+      flushSave();
+    });
+
+    saveFileBtn.addEventListener("click", exportToExcelFile);
+    globalVersionInput.addEventListener("input", saveData);
+
+    window.addEventListener("beforeunload", flushSave);
+
+    tableBody.addEventListener("input", (event) => {
+      if (!event.target.matches("textarea, input")) return;
+      if (event.target.matches("textarea")) autoResizeTextarea(event.target);
+      if (event.target.matches(".item-name-input")) updateRowTheme(event.target.closest("tr"));
+      if (event.target.matches(".section-title-input")) updateSectionNav();
+      if (event.target.matches(".comment-input")) syncCommentDisplay(event.target.closest("tr"));
+      updateProgress();
+      saveData();
+    });
+
+    tableBody.addEventListener("click", (event) => {
+      const quickBtn = event.target.closest(".status-quick-btn");
+      const badgeBtn = event.target.closest(".status-badge");
+      const dupBtn = event.target.closest(".row-action-duplicate");
+      const clearBtn = event.target.closest(".row-action-clear");
+      const delBtn = event.target.closest(".row-action-delete");
+      const expandBtn = event.target.closest(".comment-expand-btn");
+      const commentDisplay = event.target.closest(".comment-display");
+      const row = event.target.closest("tr");
+      if (!row) return;
+
+      if (quickBtn) {
+        const status = quickBtn.dataset.status;
+        updateStatusUI(row, row.dataset.status === status ? "" : status);
+        updateProgress();
+        saveData();
+        return;
+      }
+
+      if (badgeBtn) {
+        updateStatusUI(row, nextCycleStatus(row.dataset.status));
+        updateProgress();
+        saveData();
+        return;
+      }
+
+      if (commentDisplay) {
+        openCommentEditor(row);
+        return;
+      }
+
+      if (expandBtn) {
+        const display = row.querySelector(".comment-display");
+        display.dataset.expanded = display.dataset.expanded === "1" ? "" : "1";
+        syncCommentDisplay(row);
+        return;
+      }
+
+      if (dupBtn) {
+        const copy = createRow(readRowFromTr(row));
+        row.insertAdjacentElement("afterend", copy);
+        copy.querySelectorAll("textarea").forEach(autoResizeTextarea);
+        updateRowNumbers();
+        updateProgress();
+        updateSectionNav();
+        saveData();
+        return;
+      }
+
+      if (clearBtn) {
+        if (row.classList.contains("section-row")) {
+          row.querySelector(".section-title-input").value = "Нова секція";
+          updateSectionNav();
+        } else {
+          row.querySelector(".item-name-input").value = "";
+          row.querySelector(".comment-input").value = "";
+          updateStatusUI(row, "");
+          syncCommentDisplay(row);
+          row.querySelectorAll("textarea").forEach(autoResizeTextarea);
+          updateRowTheme(row);
+          updateProgress();
+        }
+        saveData();
+        return;
+      }
+
+      if (delBtn) {
+        row.remove();
+        updateRowNumbers();
+        updateProgress();
+        updateSectionNav();
+        saveData();
+      }
+    });
+
+    tableBody.addEventListener("focusout", (event) => {
+      if (!event.target.matches(".comment-input")) return;
+      const row = event.target.closest("tr");
+      setTimeout(() => {
+        if (row.contains(document.activeElement)) return;
+        closeCommentEditor(row);
+        saveData();
+      }, 0);
+    });
+
+    tableBody.addEventListener("keydown", (event) => {
+      if (event.target.matches(".comment-input") && event.key === "Escape") {
+        closeCommentEditor(event.target.closest("tr"));
+      }
+    });
+
+    appTabs.forEach((tab) => tab.addEventListener("click", () => switchApp(tab.dataset.appKey)));
+  </script>
+</body>
+</html>
